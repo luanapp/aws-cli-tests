@@ -4,7 +4,25 @@ resource "aws_s3_bucket" "this" {
 
   website {
     index_document = "index.html"
+    error_document = "404.html"
   }
+  
+  policy = <<EOF
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadForGetBucketObjects",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::${var.s3_bucket}/*"
+    }
+  ]
+}
+EOF
 
   tags = var.tags
 }
@@ -14,31 +32,28 @@ resource "aws_s3_bucket_object" "object" {
   bucket   = aws_s3_bucket.this.id
   acl      = "public-read"
 
-  key    = each.value.key
-  source = each.value.source
-  etag   = filemd5(each.value.source)
-}
-
-resource "aws_cloudfront_origin_access_identity" "this" {
-  comment = "CloudFront OAI"
+  key          = each.value.key
+  source       = each.value.source
+  content_type = "text/html"
+  etag         = filemd5(each.value.source)
 }
 
 resource "aws_cloudfront_distribution" "this" {
   origin {
-    domain_name = aws_s3_bucket.this.bucket_regional_domain_name
+    domain_name = aws_s3_bucket.this.website_endpoint
     origin_id   = aws_s3_bucket.this.id
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
+    custom_origin_config {
+      origin_protocol_policy = "http-only" 
+      http_port              = 80
+      https_port             = 443
+      origin_ssl_protocols   = ["TLSv1.2", "TLSv1.1", "TLSv1"]
     }
   }
 
   enabled             = true
-  is_ipv6_enabled     = true
   comment             = "This CF is only for a few tests, it should be deleted in the same day it was created"
   default_root_object = "index.html"
-
-  aliases = var.aliases
 
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -110,6 +125,13 @@ resource "aws_cloudfront_distribution" "this" {
     geo_restriction {
       restriction_type = "none"
     }
+  }
+
+  custom_error_response {
+    error_caching_min_ttl = 300
+    error_code            = 404
+    response_page_path    = "/404.html"
+    response_code         = 404
   }
 
   tags = var.tags

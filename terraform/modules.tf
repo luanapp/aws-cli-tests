@@ -14,6 +14,14 @@ module "cloudfront_example" {
     "mutable/test.html" = {
       key = "mutable/test.html"
       source = "./files/mutable/test.html"
+    },
+    "immutable/new.html" = {
+      key = "immutable/new.html"
+      source = "./files/immutable/new.html"
+    },
+    "mutable/new.html" = {
+      key = "mutable/new.html"
+      source = "./files/mutable/new.html"
     }
   }
 
