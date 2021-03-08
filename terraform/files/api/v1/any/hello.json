@@ -1,0 +1,9 @@
+{
+  "hello": "it's me",
+  "another": "content",
+  "onemore": "some stuff",
+  "contents": [
+    { "id": "123", "name": "blabla" },
+    { "id": "456", "name": "ajlwi" }
+  ]
+}

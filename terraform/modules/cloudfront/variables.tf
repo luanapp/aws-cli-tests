@@ -11,6 +11,7 @@ variable "s3_files" {
   type = map(object({
     key = string
     source = string
+    content_type = string
   }))
 }
 

@@ -1,0 +1,9 @@
+{
+  "hello": "it's me",
+  "another": "content",
+  "list": ["a", "new", "list", "of", "something"],
+  "contents": [
+    { "id": "789", "name": "oh my" },
+    { "id": "101112", "name": "good bye" }
+  ]
+}

@@ -25,5 +25,5 @@ done
 shift $((OPTIND -1))
 
 if [ ! -z "$CF_PATH" -a ! -z "$CF_DISTRIBUTION" ]; then
-  aws cloudfront create-invalidation --distribution $CF_DISTRIBUTION --path $CF_PATH
+  aws cloudfront create-invalidation --distribution $CF_DISTRIBUTION --paths $CF_PATH
 fi

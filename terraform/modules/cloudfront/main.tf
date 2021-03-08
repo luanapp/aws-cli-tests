@@ -34,7 +34,7 @@ resource "aws_s3_bucket_object" "object" {
 
   key          = each.value.key
   source       = each.value.source
-  content_type = "text/html"
+  content_type = each.value.content_type
   etag         = filemd5(each.value.source)
 }
 
@@ -74,9 +74,30 @@ resource "aws_cloudfront_distribution" "this" {
     max_ttl                = 86400
   }
 
-  # Cache behavior with precedence 0
   ordered_cache_behavior {
-    path_pattern     = "/content/immutable/*"
+    path_pattern     = "/api/v*/any"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = aws_s3_bucket.this.id
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+  }
+
+  # Cache behavior with precedence 1
+  ordered_cache_behavior {
+    path_pattern     = "/immutable/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
     target_origin_id = aws_s3_bucket.this.id
@@ -97,9 +118,9 @@ resource "aws_cloudfront_distribution" "this" {
     viewer_protocol_policy = "redirect-to-https"
   }
 
-  # Cache behavior with precedence 1
+  # Cache behavior with precedence 2
   ordered_cache_behavior {
-    path_pattern     = "/content/muttable/*"
+    path_pattern     = "/muttable/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = aws_s3_bucket.this.id
